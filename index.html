@@ -5,205 +5,213 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Click Countryballs</title>
     <style>
-        :root { --sidebar-w: 250px; }
+        :root { --panel: #1e293b; --bg: #0f172a; --accent: #3b82f6; }
         body {
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            background: #0f172a;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            overflow: hidden;
-            user-select: none;
+            margin: 0; display: flex; height: 100vh;
+            background: var(--bg); color: white;
+            font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none;
         }
 
-        /* Side Shop Layout */
+        /* Sidebar UI */
         .sidebar {
-            width: var(--sidebar-w);
-            background: rgba(0, 0, 0, 0.4);
-            border-right: 2px solid #334155;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 10;
+            width: 280px; background: rgba(0,0,0,0.5);
+            border-right: 3px solid #334155; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
         }
 
         .main-game {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; position: relative;
         }
 
-        /* IDLE ANIMATION */
-        @keyframes idleBounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-10px) scale(1.02); }
-        }
+        /* Animations */
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
 
-        @keyframes blink {
-            0%, 90%, 100% { transform: scaleY(1); }
-            95% { transform: scaleY(0.1); }
-        }
-
+        /* The Ball */
         .ball-container {
-            position: relative;
-            width: 250px;
-            height: 250px;
-            cursor: pointer;
-            animation: idleBounce 3s ease-in-out infinite; /* Idle movement */
-            transition: transform 0.1s;
+            position: relative; width: 260px; height: 260px;
+            animation: bounce 4s ease-in-out infinite;
+            transition: transform 0.1s; cursor: pointer;
         }
-
-        .ball-container:active {
-            animation: none;
-            transform: scale(0.9) rotate(3deg);
-        }
+        .ball-container:active { transform: scale(0.92); animation: none; }
 
         #country-flag {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 6px solid white;
-            object-fit: cover;
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 6px solid #fff; object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
 
+        /* Expressive Eyes */
         .eyes {
-            position: absolute; top: 35%; width: 100%;
+            position: absolute; top: 38%; width: 100%;
             display: flex; justify-content: center; gap: 40px;
         }
-
         .eye {
-            width: 35px; height: 45px;
-            background: white; border-radius: 50%; border: 4px solid black;
-            animation: blink 5s infinite; /* Idle blinking */
+            width: 38px; height: 48px; background: white;
+            border-radius: 50%; border: 4px solid #000;
+            transition: all 0.2s; animation: blink 6s infinite;
         }
 
-        /* Save Slots */
-        .save-slots { margin-top: auto; padding-top: 20px; border-top: 1px solid #334155; }
-        .slot-btn {
-            width: 100%; padding: 8px; margin-bottom: 5px;
-            background: #334155; color: white; border: none; cursor: pointer;
-        }
-        .slot-btn.active { background: #27ae60; }
+        /* Eye Moods */
+        .eye.angry { transform: rotate(15deg); height: 30px; border-top: 8px solid black; }
+        .eye.angry.right { transform: rotate(-15deg); }
+        .eye.happy { border-bottom: 10px solid black; background: white; height: 35px; }
 
-        /* UI elements */
+        /* Shop & Slots */
+        .shop-item {
+            background: var(--panel); padding: 12px; border-radius: 10px;
+            border: 1px solid #475569; margin-bottom: 10px;
+        }
         button {
-            padding: 12px; border-radius: 8px; border: none;
-            font-weight: bold; cursor: pointer; background: #27ae60; color: white;
+            width: 100%; padding: 10px; border-radius: 5px; border: none;
+            background: #22c55e; color: white; font-weight: bold; cursor: pointer;
         }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        .stat-box { background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; }
-        .score-big { font-size: 3rem; font-weight: 900; margin: 10px 0; color: #f1c40f; }
+        button:disabled { background: #64748b; cursor: not-allowed; }
+        
+        .slot-area { margin-top: auto; border-top: 1px solid #334155; padding-top: 10px; }
+        .slot-btn { background: #334155; margin-bottom: 5px; font-size: 0.8rem; }
+        .slot-btn.active { background: #3b82f6; }
 
-        .click-popup {
-            position: absolute; color: #f1c40f; font-weight: bold;
-            pointer-events: none; animation: floatUp 0.6s ease-out forwards;
+        .score-box { text-align: center; margin-bottom: 20px; }
+        .score-num { font-size: 3.5rem; font-weight: 800; color: #fbbf24; }
+
+        .popup {
+            position: absolute; color: #fbbf24; font-weight: bold;
+            pointer-events: none; animation: float 0.8s forwards;
         }
-        @keyframes floatUp {
-            to { opacity: 0; transform: translateY(-100px); }
-        }
+        @keyframes float { to { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h3>UPGRADES</h3>
-        <div class="stat-box">
-            <div>Power: <span id="power-val">1</span></div>
-            <br>
-            <button id="buy-upgrade">Buy Power (Cost: 15)</button>
+        <h2 style="margin:0">Market</h2>
+        
+        <div class="shop-item">
+            <small>Click Power</small>
+            <div id="pwr-lvl">Strength: 1</div>
+            <button id="buy-pwr">Upgrade ($15)</button>
         </div>
 
-        <div class="save-slots">
-            <h4>SAVE SLOTS</h4>
-            <button class="slot-btn active" onclick="switchSlot(1)" id="slot1">Slot 1</button>
-            <button class="slot-btn" onclick="switchSlot(2)" id="slot2">Slot 2</button>
-            <button class="slot-btn" onclick="switchSlot(3)" id="slot3">Slot 3</button>
+        <div class="shop-item">
+            <small>Auto-Clicker</small>
+            <div id="auto-lvl">Workforce: 0</div>
+            <button id="buy-auto">Hire ($50)</button>
+        </div>
+
+        <div class="slot-area">
+            <small>SAVES</small>
+            <button class="slot-btn active" onclick="changeSlot(1)" id="s1">Slot 1</button>
+            <button class="slot-btn" onclick="changeSlot(2)" id="s2">Slot 2</button>
+            <button class="slot-btn" onclick="changeSlot(3)" id="s3">Slot 3</button>
         </div>
     </div>
 
     <div class="main-game">
-        <h2 id="level-name">USA</h2>
-        <div class="score-big" id="score-display">0</div>
+        <div class="score-box">
+            <div id="location-name" style="letter-spacing: 3px; color: #94a3b8;">USA</div>
+            <div class="score-num" id="total-score">0</div>
+        </div>
 
         <div class="ball-container" id="ball">
             <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png">
-            <div class="eyes">
-                <div class="eye"></div>
-                <div class="eye"></div>
+            <div class="eyes" id="eye-container">
+                <div class="eye" id="l-eye"></div>
+                <div class="eye right" id="r-eye"></div>
             </div>
         </div>
     </div>
 
     <script>
         let currentSlot = 1;
-        let gameData = { score: 0, power: 1, upgradeCost: 15 };
+        let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 50 };
 
-        const countries = [
+        const locations = [
             { name: "USA", url: "https://flagpedia.net/data/flags/w580/us.png" },
-            { name: "UK", url: "https://flagpedia.net/data/flags/w580/gb.png" },
-            { name: "Japan", url: "https://flagpedia.net/data/flags/w580/jp.png" },
-            { name: "Germany", url: "https://flagpedia.net/data/flags/w580/de.png" }
+            { name: "Texas", url: "https://flagpedia.net/data/flags/w580/us-tx.png" },
+            { name: "California", url: "https://flagpedia.net/data/flags/w580/us-ca.png" },
+            { name: "France", url: "https://flagpedia.net/data/flags/w580/fr.png" },
+            { name: "Italy", url: "https://flagpedia.net/data/flags/w580/it.png" },
+            { name: "Poland", url: "https://flagpedia.net/data/flags/w580/pl.png" },
+            { name: "Ukraine", url: "https://flagpedia.net/data/flags/w580/ua.png" },
+            { name: "New York", url: "https://flagpedia.net/data/flags/w580/us-ny.png" }
         ];
 
-        function loadData() {
-            const saved = localStorage.getItem(`countryball_slot_${currentSlot}`);
-            gameData = saved ? JSON.parse(saved) : { score: 0, power: 1, upgradeCost: 15 };
-            updateUI();
+        function save() { localStorage.setItem(`cb_save_${currentSlot}`, JSON.stringify(data)); }
+        
+        function changeSlot(n) {
+            currentSlot = n;
+            const saved = localStorage.getItem(`cb_save_${currentSlot}`);
+            data = saved ? JSON.parse(saved) : { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 50 };
+            document.querySelectorAll('.slot-btn').forEach((b, i) => b.classList.toggle('active', (i+1)===n));
+            refresh();
         }
 
-        function saveData() {
-            localStorage.setItem(`countryball_slot_${currentSlot}`, JSON.stringify(gameData));
+        function setMood(mood) {
+            const l = document.getElementById('l-eye');
+            const r = document.getElementById('r-eye');
+            l.className = r.className = 'eye';
+            if(mood === 'happy') { l.classList.add('happy'); r.classList.add('happy'); }
+            if(mood === 'angry') { l.classList.add('angry'); r.classList.add('angry'); r.classList.add('right'); }
         }
 
-        function switchSlot(slotNum) {
-            currentSlot = slotNum;
-            document.querySelectorAll('.slot-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', (i + 1) === slotNum);
-            });
-            loadData();
-        }
+        function refresh() {
+            document.getElementById('total-score').textContent = Math.floor(data.score);
+            document.getElementById('pwr-lvl').textContent = `Strength: ${data.power}`;
+            document.getElementById('buy-pwr').textContent = `Upgrade ($${data.pwrCost})`;
+            document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
+            
+            document.getElementById('auto-lvl').textContent = `Workforce: ${data.auto}`;
+            document.getElementById('buy-auto').textContent = `Hire ($${data.autoCost})`;
+            document.getElementById('buy-auto').disabled = data.score < data.autoCost;
 
-        function updateUI() {
-            document.getElementById('score-display').textContent = Math.floor(gameData.score);
-            document.getElementById('power-val').textContent = gameData.power;
-            document.getElementById('buy-upgrade').innerText = `Upgrade Cost: ${gameData.upgradeCost}`;
-            document.getElementById('buy-upgrade').disabled = gameData.score < gameData.upgradeCost;
-
-            let lvl = Math.min(Math.floor(gameData.score / 100), countries.length - 1);
-            document.getElementById('country-flag').src = countries[lvl].url;
-            document.getElementById('level-name').textContent = countries[lvl].name;
+            let idx = Math.min(Math.floor(data.score / 100), locations.length - 1);
+            document.getElementById('country-flag').src = locations[idx].url;
+            document.getElementById('location-name').textContent = locations[idx].name;
         }
 
         document.getElementById('ball').addEventListener('click', (e) => {
-            gameData.score += gameData.power;
+            data.score += data.power;
+            setMood('happy');
+            setTimeout(() => setMood('neutral'), 300);
             
-            // Pop effect
             const p = document.createElement('div');
-            p.className = 'click-popup';
-            p.innerText = `+${gameData.power}`;
+            p.className = 'popup';
             p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            p.innerText = `+${data.power}`;
             document.body.appendChild(p);
-            setTimeout(() => p.remove(), 600);
-
-            updateUI();
-            saveData();
+            setTimeout(() => p.remove(), 800);
+            
+            refresh(); save();
         });
 
-        document.getElementById('buy-upgrade').addEventListener('click', () => {
-            if (gameData.score >= gameData.upgradeCost) {
-                gameData.score -= gameData.upgradeCost;
-                gameData.power++;
-                gameData.upgradeCost = Math.round(gameData.upgradeCost * 1.7);
-                updateUI();
-                saveData();
+        document.getElementById('buy-pwr').addEventListener('click', () => {
+            if(data.score >= data.pwrCost) {
+                data.score -= data.pwrCost;
+                data.power++;
+                data.pwrCost = Math.round(data.pwrCost * 1.8);
+                refresh(); save();
             }
         });
 
-        loadData();
+        document.getElementById('buy-auto').addEventListener('click', () => {
+            if(data.score >= data.autoCost) {
+                data.score -= data.autoCost;
+                data.auto++;
+                data.autoCost = Math.round(data.autoCost * 2.1);
+                refresh(); save();
+            }
+        });
+
+        setInterval(() => {
+            if(data.auto > 0) {
+                data.score += (data.auto * 0.2);
+                refresh();
+            }
+        }, 1000);
+
+        changeSlot(1);
     </script>
 </body>
 </html>
