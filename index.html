@@ -3,102 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click Countryballs</title>
+    <title>Click Countryballs: Ultimate</title>
     <style>
-        :root { --panel: #1e293b; --bg: #090e1a; --gold: #fbbf24; }
+        :root { --panel: #1e293b; --bg: #020617; --gold: #fbbf24; --green: #22c55e; }
         body {
             margin: 0; display: flex; height: 100vh;
             background: var(--bg); color: white;
             font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none;
         }
 
-        /* Sidebar & Layout */
+        /* Sidebar */
         .sidebar {
-            width: 300px; background: rgba(0,0,0,0.6);
+            width: 320px; background: rgba(0,0,0,0.8);
             border-right: 3px solid #334155; padding: 20px;
-            display: flex; flex-direction: column; gap: 15px;
+            display: flex; flex-direction: column; gap: 15px; z-index: 10;
         }
         .main-game {
             flex-grow: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center; position: relative;
         }
 
-        /* Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
-
-        /* The Ball */
+        /* The Ball & Animations */
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-15px) rotate(2deg); } }
         .ball-container {
-            position: relative; width: 280px; height: 280px;
-            animation: float 4s ease-in-out infinite;
-            transition: transform 0.1s; cursor: pointer;
+            position: relative; width: 300px; height: 300px;
+            animation: float 3s ease-in-out infinite;
+            transition: transform 0.05s; cursor: pointer;
         }
-        .ball-container:active { transform: scale(0.9); animation: none; }
+        .ball-container:active { transform: scale(0.85); animation: none; }
         #country-flag {
             width: 100%; height: 100%; border-radius: 50%;
             border: 8px solid #fff; object-fit: cover;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 0 60px rgba(0,0,0,0.9);
         }
 
         /* Eyes */
-        .eyes { position: absolute; top: 38%; width: 100%; display: flex; justify-content: center; gap: 45px; }
-        .eye { 
-            width: 40px; height: 50px; background: white; 
-            border-radius: 50%; border: 5px solid #000; animation: blink 5s infinite;
-        }
+        .eyes { position: absolute; top: 35%; width: 100%; display: flex; justify-content: center; gap: 50px; }
+        .eye { width: 45px; height: 55px; background: white; border-radius: 50%; border: 5px solid #000; }
 
-        /* Shop UI */
-        .shop-item {
-            background: var(--panel); padding: 15px; border-radius: 12px;
-            border: 1px solid #475569; position: relative;
-        }
-        .currency-text { color: var(--gold); font-weight: bold; }
+        /* Shop & About UI */
+        .card { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #475569; }
         button {
             width: 100%; padding: 12px; border-radius: 8px; border: none;
-            background: #10b981; color: white; font-weight: bold; cursor: pointer; margin-top: 10px;
+            background: var(--green); color: white; font-weight: bold; cursor: pointer; margin-top: 8px;
         }
         button:disabled { background: #475569; opacity: 0.5; }
-
-        /* Owner Panel */
-        #owner-panel {
-            position: absolute; top: 10%; background: #991b1b; padding: 20px;
-            border-radius: 15px; display: none; z-index: 100; border: 4px solid white;
-        }
+        
+        .about-section { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; border-top: 1px solid #334155; padding-top: 10px; }
 
         /* Popups */
         .popup {
             position: absolute; color: var(--gold); font-weight: 900;
-            pointer-events: none; animation: popGo 0.8s forwards; font-size: 1.5rem;
+            pointer-events: none; animation: popGo 0.6s forwards; font-size: 2rem;
         }
-        @keyframes popGo { to { opacity: 0; transform: translateY(-120px) scale(1.5); } }
+        @keyframes popGo { to { opacity: 0; transform: translateY(-150px) scale(2); } }
 
-        .score-display { text-align: center; margin-bottom: 20px; }
-        #location-name { cursor: help; font-size: 1.2rem; color: #64748b; }
+        .score-area { text-align: center; margin-bottom: 30px; }
+        #location-name { font-size: 1.5rem; letter-spacing: 5px; color: #64748b; cursor: help; }
+
+        /* Owner Panel */
+        #owner-panel {
+            position: absolute; top: 20px; right: 20px; background: #7f1d1d; 
+            padding: 15px; border-radius: 10px; display: none; border: 2px solid white; z-index: 100;
+        }
     </style>
 </head>
 <body>
 
     <div id="owner-panel">
-        <h3>OWNER PANEL</h3>
-        <button onclick="cheat(1000)">+1,000 Countrybux</button>
-        <button onclick="cheat(100000)">+100k Countrybux</button>
-        <button onclick="resetAll()" style="background:black">Hard Reset</button>
-        <button onclick="document.getElementById('owner-panel').style.display='none'">Close</button>
+        <strong>OWNER MODS</strong><br><br>
+        <button onclick="cheat(50000)">+50k Bux</button>
+        <button onclick="resetAll()" style="background: #000;">Nuclear Reset</button>
+        <button onclick="document.getElementById('owner-panel').style.display='none'">Exit</button>
     </div>
 
     <div class="sidebar">
-        <h2 style="margin:0">Shop</h2>
+        <h2 style="margin:0; color:var(--gold)">Market</h2>
         
-        <div class="shop-item">
-            <strong>Click Strength</strong>
-            <div>Lvl: <span id="pwr-lvl">1</span></div>
-            <button id="buy-pwr">Upgrade (<span class="currency-text">$</span><span id="pwr-cost">15</span>)</button>
+        <div class="card">
+            <strong>Infinite Strength</strong>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Increases click & auto value</div>
+            <button id="buy-pwr">Upgrade ($<span id="pwr-cost">15</span>)</button>
         </div>
 
-        <div class="shop-item">
-            <strong>Auto-Clickers</strong>
-            <div>Workers: <span id="auto-lvl">0</span></div>
-            <button id="buy-auto">Hire (<span class="currency-text">$</span><span id="auto-cost">50</span>)</button>
+        <div class="card">
+            <strong>Auto-Laborers (+10)</strong>
+            <div style="font-size: 0.8rem; color: #94a3b8;">Clicks 5x per second!</div>
+            <button id="buy-auto">Hire ($<span id="auto-cost">100</span>)</button>
+        </div>
+
+        <div class="about-section">
+            <strong>About Click Countryballs</strong><br>
+            Dalton created this game hes turning 6 or 7 years old.
         </div>
 
         <div style="margin-top:auto">
@@ -112,11 +108,12 @@
     </div>
 
     <div class="main-game">
-        <div class="score-display">
+        <div class="score-area">
             <div id="location-name" onclick="showOwner()">USA</div>
-            <div style="font-size: 4rem; font-weight: 900; color: var(--gold);">
-                <span id="score-val">0</span> <small style="font-size: 1.5rem">CB</small>
+            <div style="font-size: 5rem; font-weight: 900; color: var(--gold);">
+                <span id="score-val">0</span>
             </div>
+            <div style="color: #64748b;">Countrybux</div>
         </div>
 
         <div class="ball-container" id="ball">
@@ -129,54 +126,46 @@
     </div>
 
     <script>
-        let currentSlot = 1;
-        let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 50 };
+        // SOUNDS
+        const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
+        const sfx_buy = new Audio('https://www.soundjay.com/buttons/sounds/button-09a.mp3');
 
-        // Massive Country/State List
-        const locations = [
-            {n:"USA", u:"us"}, {n:"UK", u:"gb"}, {n:"Germany", u:"de"}, {n:"France", u:"fr"}, 
-            {n:"Japan", u:"jp"}, {n:"Russia", u:"ru"}, {n:"Texas", u:"us-tx"}, {n:"Canada", u:"ca"},
-            {n:"Italy", u:"it"}, {n:"Brazil", u:"br"}, {n:"Poland", u:"pl"}, {n:"Ukraine", u:"ua"},
-            {n:"Mexico", u:"mx"}, {n:"Spain", u:"es"}, {n:"California", u:"us-ca"}, {n:"China", u:"cn"},
-            {n:"Australia", u:"au"}, {n:"S. Korea", u:"kr"}, {n:"Turkey", u:"tr"}, {n:"Sweden", u:"se"}
+        let currentSlot = 1;
+        let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 100 };
+
+        const locs = [
+            "us", "gb", "ca", "au", "de", "fr", "it", "jp", "cn", "ru", "br", "mx", 
+            "es", "pl", "ua", "tr", "kr", "se", "no", "fi", "dk", "us-tx", "us-ca", "us-ny"
         ];
 
-        function save() { localStorage.setItem(`cb_v3_slot_${currentSlot}`, JSON.stringify(data)); }
+        function save() { localStorage.setItem(`dalton_save_${currentSlot}`, JSON.stringify(data)); }
         
         function changeSlot(n) {
             currentSlot = n;
-            const saved = localStorage.getItem(`cb_v3_slot_${currentSlot}`);
-            data = saved ? JSON.parse(saved) : { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 50 };
+            const saved = localStorage.getItem(`dalton_save_${currentSlot}`);
+            data = saved ? JSON.parse(saved) : { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 100 };
             document.querySelectorAll('[id^="s"]').forEach((b, i) => b.style.background = (i+1)===n ? '#3b82f6' : '#334155');
             refresh();
         }
 
         function refresh() {
-            document.getElementById('score-val').textContent = Math.floor(data.score);
-            document.getElementById('pwr-lvl').textContent = data.power;
-            document.getElementById('pwr-cost').textContent = data.pwrCost;
-            document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
+            document.getElementById('score-val').textContent = Math.floor(data.score).toLocaleString();
+            document.getElementById('pwr-cost').textContent = data.pwrCost.toLocaleString();
+            document.getElementById('auto-cost').textContent = data.autoCost.toLocaleString();
             
-            document.getElementById('auto-lvl').textContent = data.auto;
-            document.getElementById('auto-cost').textContent = data.autoCost;
+            document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
             document.getElementById('buy-auto').disabled = data.score < data.autoCost;
 
-            // Unlock new countries every 250 Countrybux
-            let idx = Math.min(Math.floor(data.score / 250), locations.length - 1);
-            document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${locations[idx].u}.png`;
-            document.getElementById('location-name').textContent = locations[idx].n;
+            // Change country every 500 Bux
+            let idx = Math.min(Math.floor(data.score / 500), locs.length - 1);
+            document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${locs[idx]}.png`;
+            document.getElementById('location-name').textContent = locs[idx].toUpperCase();
         }
 
         document.getElementById('ball').addEventListener('click', (e) => {
             data.score += data.power;
-            
-            const p = document.createElement('div');
-            p.className = 'popup';
-            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
-            p.innerText = `+$${data.power}`;
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 800);
-            
+            sfx_click.currentTime = 0; sfx_click.play();
+            spawnPopup(e.clientX, e.clientY, data.power);
             refresh(); save();
         });
 
@@ -184,26 +173,40 @@
             if(data.score >= data.pwrCost) {
                 data.score -= data.pwrCost;
                 data.power++;
-                data.pwrCost = Math.round(data.pwrCost * 1.8);
-                refresh(); save();
+                data.pwrCost = Math.round(data.pwrCost * 1.5);
+                sfx_buy.play(); refresh(); save();
             }
         });
 
         document.getElementById('buy-auto').addEventListener('click', () => {
             if(data.score >= data.autoCost) {
                 data.score -= data.autoCost;
-                data.auto++;
-                data.autoCost = Math.round(data.autoCost * 2);
-                refresh(); save();
+                data.auto += 10; // ADD 10 EACH TIME
+                data.autoCost = Math.round(data.autoCost * 1.7);
+                sfx_buy.play(); refresh(); save();
             }
         });
 
-        // Auto-Clicker loop
-        setInterval(() => { if(data.auto > 0) { data.score += (data.auto * 0.5); refresh(); save(); } }, 1000);
+        function spawnPopup(x, y, val) {
+            const p = document.createElement('div');
+            p.className = 'popup';
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            p.innerText = `+$${val}`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 600);
+        }
 
-        // Owner Panel Logic
+        // AUTO CLICKER: Runs 5 times per second
+        // Power is multiplied by Click Strength to keep it useful!
+        setInterval(() => {
+            if(data.auto > 0) {
+                data.score += (data.auto * data.power) / 5;
+                refresh();
+            }
+        }, 200);
+
         function showOwner() { document.getElementById('owner-panel').style.display = 'block'; }
-        function cheat(amt) { data.score += amt; refresh(); save(); }
+        function cheat(n) { data.score += n; sfx_buy.play(); refresh(); save(); }
         function resetAll() { if(confirm("Erase EVERYTHING?")) { localStorage.clear(); location.reload(); } }
 
         changeSlot(1);
