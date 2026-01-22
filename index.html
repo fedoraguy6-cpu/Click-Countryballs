@@ -5,229 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Click Countryballs</title>
     <style>
-        :root { --primary: #27ae60; --bg: #0f172a; }
+        :root { --sidebar-w: 250px; }
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
-            background: var(--bg);
+            display: flex;
+            height: 100vh;
+            background: #0f172a;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
             user-select: none;
         }
 
-        /* The Countryball */
-        .ball-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 20px;
-            cursor: pointer;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Side Shop Layout */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: rgba(0, 0, 0, 0.4);
+            border-right: 2px solid #334155;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
         }
 
-        .ball-container:active { transform: scale(0.9) rotate(2deg); }
+        .main-game {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* IDLE ANIMATION */
+        @keyframes idleBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        .ball-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            cursor: pointer;
+            animation: idleBounce 3s ease-in-out infinite; /* Idle movement */
+            transition: transform 0.1s;
+        }
+
+        .ball-container:active {
+            animation: none;
+            transform: scale(0.9) rotate(3deg);
+        }
 
         #country-flag {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
-            object-fit: cover;
             border: 6px solid white;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            object-fit: cover;
         }
 
         .eyes {
-            position: absolute;
-            top: 35%;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 35px;
-            pointer-events: none;
+            position: absolute; top: 35%; width: 100%;
+            display: flex; justify-content: center; gap: 40px;
         }
 
         .eye {
-            width: 30px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
-            border: 4px solid black;
+            width: 35px; height: 45px;
+            background: white; border-radius: 50%; border: 4px solid black;
+            animation: blink 5s infinite; /* Idle blinking */
         }
 
-        /* UI Elements */
-        .header { text-align: center; margin-bottom: 20px; }
-        .score-text { font-size: 3rem; font-weight: 900; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
-        
-        .progress-container {
-            width: 300px;
-            height: 12px;
-            background: #334155;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
+        /* Save Slots */
+        .save-slots { margin-top: auto; padding-top: 20px; border-top: 1px solid #334155; }
+        .slot-btn {
+            width: 100%; padding: 8px; margin-bottom: 5px;
+            background: #334155; color: white; border: none; cursor: pointer;
         }
-        #progress-bar { width: 0%; height: 100%; background: #f1c40f; transition: width 0.3s; }
+        .slot-btn.active { background: #27ae60; }
 
-        .shop-card {
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px);
-        }
-
+        /* UI elements */
         button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #1e8449;
+            padding: 12px; border-radius: 8px; border: none;
+            font-weight: bold; cursor: pointer; background: #27ae60; color: white;
         }
-
-        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
-        button:disabled { background: #64748b; box-shadow: 0 4px 0 #475569; opacity: 0.6; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        .stat-box { background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; }
+        .score-big { font-size: 3rem; font-weight: 900; margin: 10px 0; color: #f1c40f; }
 
         .click-popup {
-            position: absolute;
-            color: #f1c40f;
-            font-weight: bold;
-            font-size: 1.5rem;
-            pointer-events: none;
-            animation: float 0.7s ease-out forwards;
+            position: absolute; color: #f1c40f; font-weight: bold;
+            pointer-events: none; animation: floatUp 0.6s ease-out forwards;
         }
-
-        @keyframes float {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
+        @keyframes floatUp {
+            to { opacity: 0; transform: translateY(-100px); }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="level-name" style="color: #94a3b8; letter-spacing: 2px;">USA</div>
-        <div class="score-text" id="score">0</div>
-        <div class="progress-container"><div id="progress-bar"></div></div>
-    </div>
+    <div class="sidebar">
+        <h3>UPGRADES</h3>
+        <div class="stat-box">
+            <div>Power: <span id="power-val">1</span></div>
+            <br>
+            <button id="buy-upgrade">Buy Power (Cost: 15)</button>
+        </div>
 
-    <div class="ball-container" id="game-ball">
-        <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png">
-        <div class="eyes">
-            <div class="eye"></div>
-            <div class="eye"></div>
+        <div class="save-slots">
+            <h4>SAVE SLOTS</h4>
+            <button class="slot-btn active" onclick="switchSlot(1)" id="slot1">Slot 1</button>
+            <button class="slot-btn" onclick="switchSlot(2)" id="slot2">Slot 2</button>
+            <button class="slot-btn" onclick="switchSlot(3)" id="slot3">Slot 3</button>
         </div>
     </div>
 
-    <div class="shop-card">
-        <p style="margin: 0 0 10px 0;">Power: <span id="power-val">1</span></p>
-        <button id="buy-upgrade">Upgrade (Cost: 15)</button>
-        <button id="reset-game" style="background: #e74c3c; box-shadow: 0 4px 0 #c0392b; margin-left: 10px;">Reset</button>
+    <div class="main-game">
+        <h2 id="level-name">USA</h2>
+        <div class="score-big" id="score-display">0</div>
+
+        <div class="ball-container" id="ball">
+            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png">
+            <div class="eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- GAME DATA ---
-        let gameData = {
-            score: 0,
-            power: 1,
-            upgradeCost: 15
-        };
+        let currentSlot = 1;
+        let gameData = { score: 0, power: 1, upgradeCost: 15 };
 
         const countries = [
             { name: "USA", url: "https://flagpedia.net/data/flags/w580/us.png" },
-            { name: "United Kingdom", url: "https://flagpedia.net/data/flags/w580/gb.png" },
+            { name: "UK", url: "https://flagpedia.net/data/flags/w580/gb.png" },
             { name: "Japan", url: "https://flagpedia.net/data/flags/w580/jp.png" },
-            { name: "Germany", url: "https://flagpedia.net/data/flags/w580/de.png" },
-            { name: "Brazil", url: "https://flagpedia.net/data/flags/w580/br.png" },
-            { name: "Canada", url: "https://flagpedia.net/data/flags/w580/ca.png" }
+            { name: "Germany", url: "https://flagpedia.net/data/flags/w580/de.png" }
         ];
 
-        // --- ELEMENTS ---
-        const scoreEl = document.getElementById('score');
-        const powerEl = document.getElementById('power-val');
-        const upgradeBtn = document.getElementById('buy-upgrade');
-        const ball = document.getElementById('game-ball');
-        const flagImg = document.getElementById('country-flag');
-        const levelNameEl = document.getElementById('level-name');
-        const progressBar = document.getElementById('progress-bar');
-
-        // --- FUNCTIONS ---
-        function loadGame() {
-            const saved = localStorage.getItem('clickBallSave');
-            if (saved) {
-                gameData = JSON.parse(saved);
-                updateUI();
-            }
+        function loadData() {
+            const saved = localStorage.getItem(`countryball_slot_${currentSlot}`);
+            gameData = saved ? JSON.parse(saved) : { score: 0, power: 1, upgradeCost: 15 };
+            updateUI();
         }
 
-        function saveGame() {
-            localStorage.setItem('clickBallSave', JSON.stringify(gameData));
+        function saveData() {
+            localStorage.setItem(`countryball_slot_${currentSlot}`, JSON.stringify(gameData));
+        }
+
+        function switchSlot(slotNum) {
+            currentSlot = slotNum;
+            document.querySelectorAll('.slot-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', (i + 1) === slotNum);
+            });
+            loadData();
         }
 
         function updateUI() {
-            scoreEl.textContent = Math.floor(gameData.score);
-            powerEl.textContent = gameData.power;
-            upgradeBtn.innerHTML = `Upgrade (Cost: ${gameData.upgradeCost})`;
-            upgradeBtn.disabled = gameData.score < gameData.upgradeCost;
+            document.getElementById('score-display').textContent = Math.floor(gameData.score);
+            document.getElementById('power-val').textContent = gameData.power;
+            document.getElementById('buy-upgrade').innerText = `Upgrade Cost: ${gameData.upgradeCost}`;
+            document.getElementById('buy-upgrade').disabled = gameData.score < gameData.upgradeCost;
 
-            // Level Logic (Change every 100)
-            let level = Math.floor(gameData.score / 100);
-            if (level >= countries.length) level = countries.length - 1;
-            
-            flagImg.src = countries[level].url;
-            levelNameEl.textContent = countries[level].name;
-            
-            // Progress Bar to next 100
-            let progress = (gameData.score % 100);
-            progressBar.style.width = progress + "%";
+            let lvl = Math.min(Math.floor(gameData.score / 100), countries.length - 1);
+            document.getElementById('country-flag').src = countries[lvl].url;
+            document.getElementById('level-name').textContent = countries[lvl].name;
         }
 
-        function spawnText(x, y) {
+        document.getElementById('ball').addEventListener('click', (e) => {
+            gameData.score += gameData.power;
+            
+            // Pop effect
             const p = document.createElement('div');
             p.className = 'click-popup';
             p.innerText = `+${gameData.power}`;
-            p.style.left = x + 'px';
-            p.style.top = y + 'px';
+            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
             document.body.appendChild(p);
-            setTimeout(() => p.remove(), 700);
-        }
+            setTimeout(() => p.remove(), 600);
 
-        // --- EVENTS ---
-        ball.addEventListener('click', (e) => {
-            gameData.score += gameData.power;
-            spawnText(e.clientX, e.clientY);
             updateUI();
-            saveGame();
+            saveData();
         });
 
-        upgradeBtn.addEventListener('click', () => {
+        document.getElementById('buy-upgrade').addEventListener('click', () => {
             if (gameData.score >= gameData.upgradeCost) {
                 gameData.score -= gameData.upgradeCost;
-                gameData.power += 1;
-                gameData.upgradeCost = Math.round(gameData.upgradeCost * 1.6);
+                gameData.power++;
+                gameData.upgradeCost = Math.round(gameData.upgradeCost * 1.7);
                 updateUI();
-                saveGame();
+                saveData();
             }
         });
 
-        document.getElementById('reset-game').addEventListener('click', () => {
-            if(confirm("Are you sure you want to delete all progress?")) {
-                localStorage.removeItem('clickBallSave');
-                location.reload();
-            }
-        });
-
-        // Initialize
-        loadGame();
-        updateUI();
+        loadData();
     </script>
 </body>
 </html>
