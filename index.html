@@ -11,51 +11,174 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
+            margin: 0;
+            background: radial-gradient(circle, #2c3e50, #000000);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
         }
-        #ball {
-            width: 200px;
-            height: 200px;
+
+        .game-container { text-align: center; }
+
+        /* The Countryball */
+        .ball-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
             cursor: pointer;
             transition: transform 0.1s;
-            user-select: none;
         }
-        #ball:active {
-            transform: scale(0.9);
+
+        .ball-wrapper:active { transform: scale(0.95); }
+
+        #country-flag {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%; /* Makes it a ball */
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .stats {
-            font-size: 24px;
+
+        /* The Eyes */
+        .eyes {
+            position: absolute;
+            top: 35%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            pointer-events: none;
+        }
+
+        .eye {
+            width: 35px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid black;
+        }
+
+        /* UI Styling */
+        .stats { font-size: 2rem; margin: 10px; font-weight: bold; }
+        .level { color: #f1c40f; font-size: 1.2rem; }
+        
+        .shop {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
             margin-top: 20px;
+        }
+
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:disabled { background: #7f8c8d; }
+
+        /* Floating text effect */
+        .click-text {
+            position: absolute;
+            color: #f1c40f;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-100px); }
         }
     </style>
 </head>
 <body>
 
-    <h1>Click the Countryball!</h1>
-    
-    <img id="ball" src="https://flagpedia.net/data/flags/w580/us.png" alt="Countryball">
+    <div class="game-container">
+        <div class="level" id="level-display">Level 1: USA</div>
+        <div class="stats">Clicks: <span id="score">0</span></div>
 
-    <div class="stats">
-        Score: <span id="score">0</span>
+        <div class="ball-wrapper" id="ball-btn">
+            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png" alt="Countryball">
+            <div class="eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+        </div>
+
+        <div class="shop">
+            <p>Upgrade: +1 Click Power</p>
+            <button id="upgrade-btn">Buy (Cost: 10)</button>
+        </div>
     </div>
 
     <script>
         let score = 0;
-        const ball = document.getElementById('ball');
+        let power = 1;
+        let upgradeCost = 10;
+        const flags = [
+            { name: "USA", url: "https://flagpedia.net/data/flags/w580/us.png" },
+            { name: "UK", url: "https://flagpedia.net/data/flags/w580/gb.png" },
+            { name: "Japan", url: "https://flagpedia.net/data/flags/w580/jp.png" },
+            { name: "Germany", url: "https://flagpedia.net/data/flags/w580/de.png" },
+            { name: "Brazil", url: "https://flagpedia.net/data/flags/w580/br.png" }
+        ];
+
+        const ball = document.getElementById('ball-btn');
         const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level-display');
+        const flagImg = document.getElementById('country-flag');
+        const upgradeBtn = document.getElementById('upgrade-btn');
 
-        ball.addEventListener('click', () => {
-            score++;
-            scoreDisplay.textContent = score;
-            
-            // Optional: Add a little "bounce" effect
-            ball.style.transform = "scale(1.1)";
-            setTimeout(() => {
-                ball.style.transform = "scale(1.0)";
-            }, 100);
+        // Sounds (Using public web beeps)
+        const clickSound = new Audio('https://actions.google.com/sounds/v1/foley/pop.ogg');
+        const upgradeSound = new Audio('https://actions.google.com/sounds/v1/foley/positive_jump.ogg');
+
+        ball.addEventListener('click', (e) => {
+            score += power;
+            updateDisplay();
+            clickSound.play();
+            createParticle(e.clientX, e.clientY);
         });
-    </script>
 
+        upgradeBtn.addEventListener('click', () => {
+            if (score >= upgradeCost) {
+                score -= upgradeCost;
+                power++;
+                upgradeCost = Math.round(upgradeCost * 1.5);
+                upgradeBtn.innerText = `Buy (Cost: ${upgradeCost})`;
+                upgradeSound.play();
+                updateDisplay();
+            }
+        });
+
+        function updateDisplay() {
+            scoreDisplay.textContent = score;
+            upgradeBtn.disabled = score < upgradeCost;
+
+            // Change country every 100 clicks
+            let levelIndex = Math.floor(score / 100);
+            if (levelIndex >= flags.length) levelIndex = flags.length - 1;
+            
+            flagImg.src = flags[levelIndex].url;
+            levelDisplay.textContent = `Level ${levelIndex + 1}: ${flags[levelIndex].name}`;
+        }
+
+        function createParticle(x, y) {
+            const text = document.createElement('div');
+            text.className = 'click-text';
+            text.innerText = `+${power}`;
+            text.style.left = x + 'px';
+            text.style.top = y + 'px';
+            document.body.appendChild(text);
+            setTimeout(() => text.remove(), 800);
+        }
+    </script>
 </body>
 </html>
