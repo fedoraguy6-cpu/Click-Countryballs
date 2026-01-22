@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Countryballs</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        #ball {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        #ball:active {
+            transform: scale(0.9);
+        }
+        .stats {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Click the Countryball!</h1>
+    
+    <img id="ball" src="https://flagpedia.net/data/flags/w580/us.png" alt="Countryball">
+
+    <div class="stats">
+        Score: <span id="score">0</span>
+    </div>
+
+    <script>
+        let score = 0;
+        const ball = document.getElementById('ball');
+        const scoreDisplay = document.getElementById('score');
+
+        ball.addEventListener('click', () => {
+            score++;
+            scoreDisplay.textContent = score;
+            
+            // Optional: Add a little "bounce" effect
+            ball.style.transform = "scale(1.1)";
+            setTimeout(() => {
+                ball.style.transform = "scale(1.0)";
+            }, 100);
+        });
+    </script>
+
+</body>
+</html>
