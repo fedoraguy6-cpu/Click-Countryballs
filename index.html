@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Click Countryballs</title>
     <style>
+        :root { --primary: #27ae60; --bg: #0f172a; }
         body {
             display: flex;
             flex-direction: column;
@@ -12,173 +13,221 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background: radial-gradient(circle, #2c3e50, #000000);
+            background: var(--bg);
             color: white;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
+            user-select: none;
         }
-
-        .game-container { text-align: center; }
 
         /* The Countryball */
-        .ball-wrapper {
+        .ball-container {
             position: relative;
-            width: 220px;
-            height: 220px;
-            margin: 20px auto;
+            width: 200px;
+            height: 200px;
+            margin: 20px;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .ball-wrapper:active { transform: scale(0.95); }
+        .ball-container:active { transform: scale(0.9) rotate(2deg); }
 
         #country-flag {
             width: 100%;
             height: 100%;
-            border-radius: 50%; /* Makes it a ball */
+            border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 6px solid white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
         }
 
-        /* The Eyes */
         .eyes {
             position: absolute;
             top: 35%;
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 35px;
             pointer-events: none;
         }
 
         .eye {
-            width: 35px;
-            height: 45px;
+            width: 30px;
+            height: 40px;
             background: white;
             border-radius: 50%;
-            border: 3px solid black;
+            border: 4px solid black;
         }
 
-        /* UI Styling */
-        .stats { font-size: 2rem; margin: 10px; font-weight: bold; }
-        .level { color: #f1c40f; font-size: 1.2rem; }
+        /* UI Elements */
+        .header { text-align: center; margin-bottom: 20px; }
+        .score-text { font-size: 3rem; font-weight: 900; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
         
-        .shop {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-top: 20px;
+        .progress-container {
+            width: 300px;
+            height: 12px;
+            background: #334155;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        #progress-bar { width: 0%; height: 100%; background: #f1c40f; transition: width 0.3s; }
+
+        .shop-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
         }
 
         button {
-            background: #27ae60;
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
             font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e8449;
         }
 
-        button:disabled { background: #7f8c8d; }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e8449; }
+        button:disabled { background: #64748b; box-shadow: 0 4px 0 #475569; opacity: 0.6; }
 
-        /* Floating text effect */
-        .click-text {
+        .click-popup {
             position: absolute;
             color: #f1c40f;
             font-weight: bold;
+            font-size: 1.5rem;
             pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
+            animation: float 0.7s ease-out forwards;
         }
 
-        @keyframes floatUp {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-100px); }
+        @keyframes float {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <div class="level" id="level-display">Level 1: USA</div>
-        <div class="stats">Clicks: <span id="score">0</span></div>
+    <div class="header">
+        <div id="level-name" style="color: #94a3b8; letter-spacing: 2px;">USA</div>
+        <div class="score-text" id="score">0</div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+    </div>
 
-        <div class="ball-wrapper" id="ball-btn">
-            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png" alt="Countryball">
-            <div class="eyes">
-                <div class="eye"></div>
-                <div class="eye"></div>
-            </div>
-        </div>
-
-        <div class="shop">
-            <p>Upgrade: +1 Click Power</p>
-            <button id="upgrade-btn">Buy (Cost: 10)</button>
+    <div class="ball-container" id="game-ball">
+        <img id="country-flag" src="https://flagpedia.net/data/flags/w580/us.png">
+        <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
         </div>
     </div>
 
+    <div class="shop-card">
+        <p style="margin: 0 0 10px 0;">Power: <span id="power-val">1</span></p>
+        <button id="buy-upgrade">Upgrade (Cost: 15)</button>
+        <button id="reset-game" style="background: #e74c3c; box-shadow: 0 4px 0 #c0392b; margin-left: 10px;">Reset</button>
+    </div>
+
     <script>
-        let score = 0;
-        let power = 1;
-        let upgradeCost = 10;
-        const flags = [
+        // --- GAME DATA ---
+        let gameData = {
+            score: 0,
+            power: 1,
+            upgradeCost: 15
+        };
+
+        const countries = [
             { name: "USA", url: "https://flagpedia.net/data/flags/w580/us.png" },
-            { name: "UK", url: "https://flagpedia.net/data/flags/w580/gb.png" },
+            { name: "United Kingdom", url: "https://flagpedia.net/data/flags/w580/gb.png" },
             { name: "Japan", url: "https://flagpedia.net/data/flags/w580/jp.png" },
             { name: "Germany", url: "https://flagpedia.net/data/flags/w580/de.png" },
-            { name: "Brazil", url: "https://flagpedia.net/data/flags/w580/br.png" }
+            { name: "Brazil", url: "https://flagpedia.net/data/flags/w580/br.png" },
+            { name: "Canada", url: "https://flagpedia.net/data/flags/w580/ca.png" }
         ];
 
-        const ball = document.getElementById('ball-btn');
-        const scoreDisplay = document.getElementById('score');
-        const levelDisplay = document.getElementById('level-display');
+        // --- ELEMENTS ---
+        const scoreEl = document.getElementById('score');
+        const powerEl = document.getElementById('power-val');
+        const upgradeBtn = document.getElementById('buy-upgrade');
+        const ball = document.getElementById('game-ball');
         const flagImg = document.getElementById('country-flag');
-        const upgradeBtn = document.getElementById('upgrade-btn');
+        const levelNameEl = document.getElementById('level-name');
+        const progressBar = document.getElementById('progress-bar');
 
-        // Sounds (Using public web beeps)
-        const clickSound = new Audio('https://actions.google.com/sounds/v1/foley/pop.ogg');
-        const upgradeSound = new Audio('https://actions.google.com/sounds/v1/foley/positive_jump.ogg');
+        // --- FUNCTIONS ---
+        function loadGame() {
+            const saved = localStorage.getItem('clickBallSave');
+            if (saved) {
+                gameData = JSON.parse(saved);
+                updateUI();
+            }
+        }
 
+        function saveGame() {
+            localStorage.setItem('clickBallSave', JSON.stringify(gameData));
+        }
+
+        function updateUI() {
+            scoreEl.textContent = Math.floor(gameData.score);
+            powerEl.textContent = gameData.power;
+            upgradeBtn.innerHTML = `Upgrade (Cost: ${gameData.upgradeCost})`;
+            upgradeBtn.disabled = gameData.score < gameData.upgradeCost;
+
+            // Level Logic (Change every 100)
+            let level = Math.floor(gameData.score / 100);
+            if (level >= countries.length) level = countries.length - 1;
+            
+            flagImg.src = countries[level].url;
+            levelNameEl.textContent = countries[level].name;
+            
+            // Progress Bar to next 100
+            let progress = (gameData.score % 100);
+            progressBar.style.width = progress + "%";
+        }
+
+        function spawnText(x, y) {
+            const p = document.createElement('div');
+            p.className = 'click-popup';
+            p.innerText = `+${gameData.power}`;
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 700);
+        }
+
+        // --- EVENTS ---
         ball.addEventListener('click', (e) => {
-            score += power;
-            updateDisplay();
-            clickSound.play();
-            createParticle(e.clientX, e.clientY);
+            gameData.score += gameData.power;
+            spawnText(e.clientX, e.clientY);
+            updateUI();
+            saveGame();
         });
 
         upgradeBtn.addEventListener('click', () => {
-            if (score >= upgradeCost) {
-                score -= upgradeCost;
-                power++;
-                upgradeCost = Math.round(upgradeCost * 1.5);
-                upgradeBtn.innerText = `Buy (Cost: ${upgradeCost})`;
-                upgradeSound.play();
-                updateDisplay();
+            if (gameData.score >= gameData.upgradeCost) {
+                gameData.score -= gameData.upgradeCost;
+                gameData.power += 1;
+                gameData.upgradeCost = Math.round(gameData.upgradeCost * 1.6);
+                updateUI();
+                saveGame();
             }
         });
 
-        function updateDisplay() {
-            scoreDisplay.textContent = score;
-            upgradeBtn.disabled = score < upgradeCost;
+        document.getElementById('reset-game').addEventListener('click', () => {
+            if(confirm("Are you sure you want to delete all progress?")) {
+                localStorage.removeItem('clickBallSave');
+                location.reload();
+            }
+        });
 
-            // Change country every 100 clicks
-            let levelIndex = Math.floor(score / 100);
-            if (levelIndex >= flags.length) levelIndex = flags.length - 1;
-            
-            flagImg.src = flags[levelIndex].url;
-            levelDisplay.textContent = `Level ${levelIndex + 1}: ${flags[levelIndex].name}`;
-        }
-
-        function createParticle(x, y) {
-            const text = document.createElement('div');
-            text.className = 'click-text';
-            text.innerText = `+${power}`;
-            text.style.left = x + 'px';
-            text.style.top = y + 'px';
-            document.body.appendChild(text);
-            setTimeout(() => text.remove(), 800);
-        }
+        // Initialize
+        loadGame();
+        updateUI();
     </script>
 </body>
 </html>
