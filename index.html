@@ -29,13 +29,15 @@
             transition: transform 0.05s; cursor: pointer;
         }
         .ball-container:active { transform: scale(0.85); animation: none; }
+        
         #country-flag {
             width: 100%; height: 100%; border-radius: 50%;
             border: 8px solid #fff; object-fit: cover;
             box-shadow: 0 0 60px rgba(0,0,0,0.9);
+            background-color: #334155; /* Placeholder color while loading */
         }
 
-        .eyes { position: absolute; top: 35%; width: 100%; display: flex; justify-content: center; gap: 50px; }
+        .eyes { position: absolute; top: 35%; width: 100%; display: flex; justify-content: center; gap: 50px; pointer-events: none; }
         .eye { width: 45px; height: 55px; background: white; border-radius: 50%; border: 5px solid #000; }
 
         .card { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #475569; }
@@ -80,7 +82,7 @@
 
         <div class="about-section">
             <strong>About</strong><br>
-            A 10 year old named Dalton, created this game as a testing game. But he realised it was good and kept it and made a website..
+            Dalton created this game hes turning 6 or 7 years old.
         </div>
         
         <div style="margin-top:auto">
@@ -96,7 +98,7 @@
         </div>
 
         <div class="ball-container" id="ball">
-            <img id="country-flag" src="">
+            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/my.png">
             <div class="eyes">
                 <div class="eye"></div>
                 <div class="eye"></div>
@@ -108,19 +110,24 @@
         const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
         
         let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 100 };
-        const SAVE_KEY = "dalton_world_save";
+        const SAVE_KEY = "dalton_world_v4";
         
-        // Full Country List Mapping (Code lookup)
-        const countryList = [
-            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burma", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Samoa", "San Marino", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        // This list maps the Name to the real Country Code used by Flagpedia
+        const countries = [
+            {n:"Malaysia", c:"my"}, {n:"Afghanistan", c:"af"}, {n:"Albania", c:"al"}, {n:"Algeria", c:"dz"}, 
+            {n:"Andorra", c:"ad"}, {n:"Angola", c:"ao"}, {n:"Argentina", c:"ar"}, {n:"Australia", c:"au"}, 
+            {n:"Austria", c:"at"}, {n:"Azerbaijan", c:"az"}, {n:"Bahamas", c:"bs"}, {n:"Bahrain", c:"bh"}, 
+            {n:"Bangladesh", c:"bd"}, {n:"Barbados", c:"bb"}, {n:"Belarus", c:"by"}, {n:"Belgium", c:"be"}, 
+            {n:"Belize", c:"bz"}, {n:"Benin", c:"bj"}, {n:"Bolivia", c:"bo"}, {n:"Brazil", c:"br"}, 
+            {n:"Bulgaria", c:"bg"}, {n:"Cambodia", c:"kh"}, {n:"Cameroon", c:"cm"}, {n:"Canada", c:"ca"}, 
+            {n:"Chile", c:"cl"}, {n:"China", c:"cn"}, {n:"Colombia", c:"co"}, {n:"Cuba", c:"cu"}, 
+            {n:"Denmark", c:"dk"}, {n:"Egypt", c:"eg"}, {n:"Finland", c:"fi"}, {n:"France", c:"fr"}, 
+            {n:"Germany", c:"de"}, {n:"Greece", c:"gr"}, {n:"India", c:"in"}, {n:"Indonesia", c:"id"}, 
+            {n:"Italy", c:"it"}, {n:"Japan", c:"jp"}, {n:"Mexico", c:"mx"}, {n:"Norway", c:"no"}, 
+            {n:"Philippines", c:"ph"}, {n:"Poland", c:"pl"}, {n:"Russia", c:"ru"}, {n:"Spain", c:"es"}, 
+            {n:"Sweden", c:"se"}, {n:"Thailand", c:"th"}, {n:"Turkey", c:"tr"}, {n:"Ukraine", c:"ua"}, 
+            {n:"United Kingdom", c:"gb"}, {n:"USA", c:"us"}, {n:"Vietnam", c:"vn"}
         ];
-
-        // Function to get flag from RestCountries or Flagpedia based on name
-        function getFlagUrl(name) {
-            // Special handling for Texas and historical entities can be added here
-            if(name === "Texas") return "https://flagpedia.net/data/flags/w580/us-tx.png";
-            return `https://countriesnow.space/api/v0.1/countries/flag/images`; // Placeholder logic
-        }
 
         function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
         
@@ -137,18 +144,12 @@
             document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
             document.getElementById('buy-auto').disabled = data.score < data.autoCost;
 
-            // Change country every 300 Bux to cycle through the long list faster
-            let idx = Math.min(Math.floor(data.score / 300), countryList.length - 1);
-            let countryName = countryList[idx];
-            document.getElementById('location-name').textContent = countryName.toUpperCase();
+            // Progress to next country every 500 Countrybux
+            let idx = Math.min(Math.floor(data.score / 500), countries.length - 1);
+            let current = countries[idx];
             
-            // Using a reliable flag CDN by searching for the name
-            document.getElementById('country-flag').src = `https://joonsay.com/flags/${countryName.toLowerCase().replace(/ /g, "-")}.png`;
-            
-            // Fallback for missing flags
-            document.getElementById('country-flag').onerror = function() {
-                this.src = "https://flagpedia.net/data/flags/w580/un.png"; // UN flag as fallback
-            };
+            document.getElementById('location-name').textContent = current.n.toUpperCase();
+            document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${current.c}.png`;
         }
 
         document.getElementById('ball').addEventListener('click', (e) => {
