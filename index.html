@@ -1,164 +1,223 @@
-<script>
-/* ===================== CORE DATA ===================== */
-let soundEnabled = false;
-const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Countryballs: Dalton Edition</title>
+    <style>
+        :root { --panel: #1e293b; --bg: #020617; --gold: #fbbf24; --green: #22c55e; }
+        body {
+            margin: 0; display: flex; height: 100vh;
+            background: var(--bg); color: white;
+            font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none;
+        }
 
-let data = {
-  score: 0,
-  power: 1,
-  pwrCost: 15,
-  auto: 0,
-  autoCost: 100
-};
+        /* Secret Baby Mode Trigger */
+        #secret-baby-trigger {
+            position: absolute; top: 0; right: 0;
+            width: 30px; height: 30px; background: transparent;
+            cursor: pointer; z-index: 1000;
+        }
 
-const SAVE_KEY = "dalton_countryball_save";
-let babyMode = false;
+        /* Sidebar */
+        .sidebar {
+            width: 320px; background: rgba(0,0,0,0.8);
+            border-right: 3px solid #334155; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; z-index: 10;
+        }
+        .main-game {
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; position: relative;
+        }
 
-/* ===================== 200+ COUNTRY CODES ===================== */
-const allCodes = [];
-const letters = "abcdefghijklmnopqrstuvwxyz";
-for(let a of letters){
-  for(let b of letters){
-    allCodes.push(a+b);
-  }
-}
+        /* The Ball */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .ball-container {
+            position: relative; width: 280px; height: 280px;
+            animation: float 3s ease-in-out infinite;
+            transition: transform 0.05s; cursor: pointer;
+        }
+        .ball-container:active { transform: scale(0.85); animation: none; }
+        #country-flag {
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 8px solid #fff; object-fit: cover;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9);
+        }
 
-/* ===================== SAVE / LOAD ===================== */
-function save() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-}
+        /* Eyes */
+        .eyes { position: absolute; top: 35%; width: 100%; display: flex; justify-content: center; gap: 50px; }
+        .eye { width: 45px; height: 55px; background: white; border-radius: 50%; border: 5px solid #000; }
 
-function load() {
-  try {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if(saved) data = JSON.parse(saved);
-  } catch(e) {
-    console.warn("Save error, resetting.");
-    localStorage.removeItem(SAVE_KEY);
-  }
-  refresh();
-}
+        /* UI Styling */
+        .card { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #475569; }
+        button {
+            width: 100%; padding: 12px; border-radius: 8px; border: none;
+            background: var(--green); color: white; font-weight: bold; cursor: pointer; margin-top: 8px;
+        }
+        button:disabled { background: #475569; opacity: 0.5; }
+        
+        .about-section { font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px; }
+        .score-area { text-align: center; margin-bottom: 30px; }
+        .popup { position: absolute; color: var(--gold); font-weight: 900; pointer-events: none; animation: popGo 0.6s forwards; font-size: 2.2rem; z-index: 500;}
+        @keyframes popGo { to { opacity: 0; transform: translateY(-150px) scale(2); } }
 
-/* ===================== COUNTRY SYSTEM ===================== */
-function updateCountry() {
-  const idx = Math.floor(data.score / 1000);
-  const code = allCodes[idx % allCodes.length];
-  const flag = document.getElementById("country-flag");
+        /* Owner Panel */
+        #owner-panel {
+            position: absolute; top: 20px; left: 340px; background: #7f1d1d; 
+            padding: 15px; border-radius: 10px; display: none; border: 2px solid white; z-index: 100;
+        }
 
-  flag.src = `https://flagcdn.com/w320/${code}.png`;
-  flag.onerror = () => {
-    flag.src = "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
-  };
+        /* Baby Version Overlay */
+        #baby-version {
+            display: none; position: fixed; inset: 0; background: #ffcfdf; 
+            z-index: 2000; flex-direction: column; align-items: center; justify-content: center; color: #ff4d94;
+        }
+    </style>
+</head>
+<body>
 
-  document.getElementById("location-name").textContent = code.toUpperCase();
-}
+    <div id="secret-baby-trigger" onclick="toggleBabyMode()"></div>
 
-/* ===================== UI REFRESH ===================== */
-function refresh() {
-  document.getElementById('score-val').textContent = Math.floor(data.score).toLocaleString();
-  document.getElementById('pwr-cost').textContent = data.pwrCost.toLocaleString();
-  document.getElementById('auto-cost').textContent = data.autoCost.toLocaleString();
-  document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
-  document.getElementById('buy-auto').disabled = data.score < data.autoCost;
-  updateCountry();
-}
+    <div id="baby-version">
+        <h1>BABY MODE 🍼</h1>
+        <p>Goo goo ga ga! Points are free here!</p>
+        <button onclick="toggleBabyMode()" style="width: 200px; background: #ff4d94;">Exit Baby Mode</button>
+    </div>
 
-/* ===================== POPUP ===================== */
-function spawnPopup(x, y, val) {
-  const p = document.createElement('div');
-  p.className = 'popup';
-  p.style.left = x + 'px';
-  p.style.top = y + 'px';
-  p.innerText = `+$${val}`;
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 600);
-}
+    <div id="owner-panel">
+        <strong>OWNER MODS</strong><br>
+        <button onclick="cheat(100000)">+100k Bux</button>
+        <button onclick="resetAll()" style="background: #000;">Hard Reset</button>
+        <button onclick="document.getElementById('owner-panel').style.display='none'">Close</button>
+    </div>
 
-/* ===================== EMOTIONS ===================== */
-const emotions = ["neutral","happy","sad","angry","idle"];
+    <div class="sidebar">
+        <h2 style="margin:0; color:var(--gold)">Market</h2>
+        
+        <div class="card">
+            <strong>Infinite Strength</strong>
+            <button id="buy-pwr">Upgrade ($<span id="pwr-cost">15</span>)</button>
+        </div>
 
-function randomEmotion() {
-  const ball = document.getElementById("ball");
-  ball.classList.remove(...emotions);
-  const emo = emotions[Math.floor(Math.random() * emotions.length)];
-  ball.classList.add(emo);
-}
+        <div class="card">
+            <strong>Auto-Laborers (+10)</strong>
+            <button id="buy-auto">Hire ($<span id="auto-cost">100</span>)</button>
+        </div>
 
-/* ===================== MUTATIONS ===================== */
-function tryMutation() {
-  const ball = document.getElementById("ball");
-  ball.classList.remove("mutated","golden");
+        <div class="about-section">
+            <strong>About</strong><br>
+            Dalton created this game hes turning 6 or 7 years old.
+        </div>
+        
+        <div style="margin-top:auto">
+            <button onclick="resetAll()" style="background: #ef4444;">Delete Progress</button>
+        </div>
+    </div>
 
-  if(Math.random() < 0.02) { // 2%
-    ball.classList.add("mutated");
-  }
-  if(Math.random() < 0.005) { // 0.5%
-    ball.classList.add("golden");
-  }
-}
+    <div class="main-game">
+        <div class="score-area">
+            <div id="location-name" onclick="showOwner()" style="font-size: 1.5rem; letter-spacing: 5px; color: #64748b; cursor: help;">MALAYSIA</div>
+            <div style="font-size: 5rem; font-weight: 900; color: var(--gold);" id="score-val">0</div>
+            <div style="color: #64748b;">Countrybux</div>
+        </div>
 
-/* ===================== CLICK HANDLER ===================== */
-document.getElementById('ball').addEventListener('click', (e) => {
-  if(babyMode) return;
+        <div class="ball-container" id="ball">
+            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/my.png">
+            <div class="eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+        </div>
+    </div>
 
-  soundEnabled = true;
-  data.score += data.power;
+    <script>
+        const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
+        
+        let babyMode = false;
+        let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 100 };
+        const SAVE_KEY = "dalton_ultimate_save";
+        
+        const codes = ["my", "gb", "us", "ca", "au", "de", "fr", "it", "jp", "cn", "ru", "br", "mx", "es", "pl", "ua", "tr", "kr", "se", "no", "fi", "dk", "id", "th", "vn", "sg", "ph", "in", "eg", "za"];
 
-  try {
-    sfx_click.currentTime = 0;
-    sfx_click.play();
-  } catch {}
+        function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
+        
+        function load() {
+            const saved = localStorage.getItem(SAVE_KEY);
+            if(saved) data = JSON.parse(saved);
+            refresh();
+        }
 
-  spawnPopup(e.clientX, e.clientY, data.power);
-  randomEmotion();
-  tryMutation();
-  refresh();
-  save();
-});
+        function refresh() {
+            document.getElementById('score-val').textContent = Math.floor(data.score).toLocaleString();
+            document.getElementById('pwr-cost').textContent = data.pwrCost.toLocaleString();
+            document.getElementById('auto-cost').textContent = data.autoCost.toLocaleString();
+            document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
+            document.getElementById('buy-auto').disabled = data.score < data.autoCost;
 
-/* ===================== UPGRADES ===================== */
-document.getElementById('buy-pwr').onclick = () => {
-  if(data.score >= data.pwrCost) {
-    data.score -= data.pwrCost;
-    data.power++;
-    data.pwrCost = Math.round(data.pwrCost * 1.4);
-    refresh();
-    save();
-  }
-};
+            // Change country every 1000 Bux
+            let idx = Math.min(Math.floor(data.score / 1000), codes.length - 1);
+            let code = codes[idx];
+            document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${code}.png`;
+            document.getElementById('location-name').textContent = code.toUpperCase();
+        }
 
-document.getElementById('buy-auto').onclick = () => {
-  if(data.score >= data.autoCost) {
-    data.score -= data.autoCost;
-    data.auto++;
-    data.autoCost = Math.round(data.autoCost * 1.6);
-    refresh();
-    save();
-  }
-};
+        document.getElementById('ball').addEventListener('click', (e) => {
+            if(babyMode) return;
+            data.score += data.power;
+            
+            try { sfx_click.currentTime = 0; sfx_click.play(); } catch(err){}
+            
+            spawnPopup(e.clientX, e.clientY, data.power);
+            refresh(); save();
+        });
 
-/* ===================== AUTO INCOME ===================== */
-setInterval(() => {
-  if(data.auto > 0 && !babyMode) {
-    data.score += data.auto;
-    refresh();
-  }
-}, 1000);
+        document.getElementById('buy-pwr').addEventListener('click', () => {
+            if(data.score >= data.pwrCost) {
+                data.score -= data.pwrCost;
+                data.power++;
+                data.pwrCost = Math.round(data.pwrCost * 1.5);
+                refresh(); save();
+            }
+        });
 
-/* ===================== BABY MODE ===================== */
-function toggleBabyMode() {
-  const baby = document.getElementById('baby-version');
-  babyMode = !babyMode;
-  baby.style.display = babyMode ? 'flex' : 'none';
-}
+        document.getElementById('buy-auto').addEventListener('click', () => {
+            if(data.score >= data.autoCost) {
+                data.score -= data.autoCost;
+                data.auto += 10;
+                data.autoCost = Math.round(data.autoCost * 1.7);
+                refresh(); save();
+            }
+        });
 
-/* ===================== RESET ===================== */
-function resetAll() {
-  if(confirm("Erase all progress?")) {
-    localStorage.removeItem(SAVE_KEY);
-    location.reload();
-  }
-}
+        function spawnPopup(x, y, val) {
+            const p = document.createElement('div');
+            p.className = 'popup';
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            p.innerText = `+$${val}`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 600);
+        }
 
-load();
-</script>
+        // Auto-Income: Every 200ms (5 times per second)
+        setInterval(() => {
+            if(data.auto > 0 && !babyMode) {
+                // Auto-labor is multiplied by your strength
+                data.score += (data.auto * data.power) / 5;
+                refresh();
+            }
+        }, 200);
+
+        function toggleBabyMode() {
+            const baby = document.getElementById('baby-version');
+            babyMode = !babyMode;
+            baby.style.display = babyMode ? 'flex' : 'none';
+        }
+
+        function showOwner() { document.getElementById('owner-panel').style.display = 'block'; }
+        function cheat(n) { data.score += n; refresh(); save(); }
+        function resetAll() { if(confirm("Erase all progress?")) { localStorage.clear(); location.reload(); } }
+
+        load();
+    </script>
+</body>
+</html>
