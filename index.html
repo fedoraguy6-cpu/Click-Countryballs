@@ -1,4 +1,5 @@
 <script>
+/* ===================== CORE DATA ===================== */
 let soundEnabled = false;
 const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
 
@@ -10,33 +11,19 @@ let data = {
   autoCost: 100
 };
 
-const SAVE_KEY = "dalton_final_save";
-
-const countries = [
-  {code:"my", name:"MALAYSIA"},
-  {code:"gb", name:"UK"},
-  {code:"ca", name:"CANADA"},
-  {code:"au", name:"AUSTRALIA"},
-  {code:"de", name:"GERMANY"},
-  {code:"fr", name:"FRANCE"},
-  {code:"it", name:"ITALY"},
-  {code:"jp", name:"JAPAN"},
-  {code:"cn", name:"CHINA"},
-  {code:"ru", name:"RUSSIA"},
-  {code:"br", name:"BRAZIL"},
-  {code:"mx", name:"MEXICO"},
-  {code:"es", name:"SPAIN"},
-  {code:"pl", name:"POLAND"},
-  {code:"ua", name:"UKRAINE"},
-  {code:"tr", name:"TURKEY"},
-  {code:"kr", name:"KOREA"},
-  {code:"se", name:"SWEDEN"},
-  {code:"no", name:"NORWAY"},
-  {code:"fi", name:"FINLAND"}
-];
-
+const SAVE_KEY = "dalton_countryball_save";
 let babyMode = false;
 
+/* ===================== 200+ COUNTRY CODES ===================== */
+const allCodes = [];
+const letters = "abcdefghijklmnopqrstuvwxyz";
+for(let a of letters){
+  for(let b of letters){
+    allCodes.push(a+b);
+  }
+}
+
+/* ===================== SAVE / LOAD ===================== */
 function save() {
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
 }
@@ -45,60 +32,38 @@ function load() {
   try {
     const saved = localStorage.getItem(SAVE_KEY);
     if(saved) data = JSON.parse(saved);
-  } catch {
-    console.warn("Save corrupted, resetting.");
+  } catch(e) {
+    console.warn("Save error, resetting.");
     localStorage.removeItem(SAVE_KEY);
   }
   refresh();
 }
 
+/* ===================== COUNTRY SYSTEM ===================== */
+function updateCountry() {
+  const idx = Math.floor(data.score / 1000);
+  const code = allCodes[idx % allCodes.length];
+  const flag = document.getElementById("country-flag");
+
+  flag.src = `https://flagcdn.com/w320/${code}.png`;
+  flag.onerror = () => {
+    flag.src = "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
+  };
+
+  document.getElementById("location-name").textContent = code.toUpperCase();
+}
+
+/* ===================== UI REFRESH ===================== */
 function refresh() {
   document.getElementById('score-val').textContent = Math.floor(data.score).toLocaleString();
   document.getElementById('pwr-cost').textContent = data.pwrCost.toLocaleString();
   document.getElementById('auto-cost').textContent = data.autoCost.toLocaleString();
   document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
   document.getElementById('buy-auto').disabled = data.score < data.autoCost;
-
-  let idx = Math.min(Math.floor(data.score / 1000), countries.length - 1);
-  const c = countries[idx];
-  document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${c.code}.png`;
-  document.getElementById('location-name').textContent = c.name;
+  updateCountry();
 }
 
-document.getElementById('ball').addEventListener('click', (e) => {
-  if(babyMode) return;
-
-  soundEnabled = true;
-  data.score += data.power;
-
-  if(soundEnabled) {
-    sfx_click.currentTime = 0;
-    sfx_click.play().catch(()=>{});
-  }
-
-  spawnPopup(e.clientX, e.clientY, data.power);
-  refresh();
-  save();
-});
-
-document.getElementById('buy-pwr').onclick = () => {
-  if(data.score >= data.pwrCost) {
-    data.score -= data.pwrCost;
-    data.power++;
-    data.pwrCost = Math.round(data.pwrCost * 1.4);
-    refresh(); save();
-  }
-};
-
-document.getElementById('buy-auto').onclick = () => {
-  if(data.score >= data.autoCost) {
-    data.score -= data.autoCost;
-    data.auto += 1;
-    data.autoCost = Math.round(data.autoCost * 1.6);
-    refresh(); save();
-  }
-};
-
+/* ===================== POPUP ===================== */
 function spawnPopup(x, y, val) {
   const p = document.createElement('div');
   p.className = 'popup';
@@ -109,6 +74,70 @@ function spawnPopup(x, y, val) {
   setTimeout(() => p.remove(), 600);
 }
 
+/* ===================== EMOTIONS ===================== */
+const emotions = ["neutral","happy","sad","angry","idle"];
+
+function randomEmotion() {
+  const ball = document.getElementById("ball");
+  ball.classList.remove(...emotions);
+  const emo = emotions[Math.floor(Math.random() * emotions.length)];
+  ball.classList.add(emo);
+}
+
+/* ===================== MUTATIONS ===================== */
+function tryMutation() {
+  const ball = document.getElementById("ball");
+  ball.classList.remove("mutated","golden");
+
+  if(Math.random() < 0.02) { // 2%
+    ball.classList.add("mutated");
+  }
+  if(Math.random() < 0.005) { // 0.5%
+    ball.classList.add("golden");
+  }
+}
+
+/* ===================== CLICK HANDLER ===================== */
+document.getElementById('ball').addEventListener('click', (e) => {
+  if(babyMode) return;
+
+  soundEnabled = true;
+  data.score += data.power;
+
+  try {
+    sfx_click.currentTime = 0;
+    sfx_click.play();
+  } catch {}
+
+  spawnPopup(e.clientX, e.clientY, data.power);
+  randomEmotion();
+  tryMutation();
+  refresh();
+  save();
+});
+
+/* ===================== UPGRADES ===================== */
+document.getElementById('buy-pwr').onclick = () => {
+  if(data.score >= data.pwrCost) {
+    data.score -= data.pwrCost;
+    data.power++;
+    data.pwrCost = Math.round(data.pwrCost * 1.4);
+    refresh();
+    save();
+  }
+};
+
+document.getElementById('buy-auto').onclick = () => {
+  if(data.score >= data.autoCost) {
+    data.score -= data.autoCost;
+    data.auto++;
+    data.autoCost = Math.round(data.autoCost * 1.6);
+    refresh();
+    save();
+  }
+};
+
+/* ===================== AUTO INCOME ===================== */
 setInterval(() => {
   if(data.auto > 0 && !babyMode) {
     data.score += data.auto;
@@ -116,12 +145,14 @@ setInterval(() => {
   }
 }, 1000);
 
+/* ===================== BABY MODE ===================== */
 function toggleBabyMode() {
   const baby = document.getElementById('baby-version');
   babyMode = !babyMode;
   baby.style.display = babyMode ? 'flex' : 'none';
 }
 
+/* ===================== RESET ===================== */
 function resetAll() {
   if(confirm("Erase all progress?")) {
     localStorage.removeItem(SAVE_KEY);
