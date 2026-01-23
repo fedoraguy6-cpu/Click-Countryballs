@@ -1,203 +1,391 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click Countryballs.</title>
-    <style>
-        :root { --panel: #1e293b; --bg: #020617; --gold: #fbbf24; --green: #22c55e; }
-        body {
-            margin: 0; display: flex; height: 100vh;
-            background: var(--bg); color: white;
-            font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none;
-        }
+<meta charset="UTF-8">
+<title>Countryballs: Zimbabwe Endgame</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .sidebar {
-            width: 320px; background: rgba(0,0,0,0.8);
-            border-right: 3px solid #334155; padding: 20px;
-            display: flex; flex-direction: column; gap: 15px; z-index: 10;
-        }
-        .main-game {
-            flex-grow: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; position: relative;
-        }
+<style>
+:root {
+  --panel: #1e293b;
+  --bg: #020617;
+  --gold: #fbbf24;
+  --green: #22c55e;
+}
+body {
+  margin: 0;
+  display: flex;
+  height: 100vh;
+  background: var(--bg);
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
 
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        .ball-container {
-            position: relative; width: 280px; height: 280px;
-            animation: float 3s ease-in-out infinite;
-            transition: transform 0.05s; cursor: pointer;
-        }
-        .ball-container:active { transform: scale(0.85); animation: none; }
-        
-        #country-flag {
-            width: 100%; height: 100%; border-radius: 50%;
-            border: 8px solid #fff; object-fit: cover;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9);
-            background-color: #334155; /* Placeholder color while loading */
-        }
+/* Sidebar */
+.sidebar {
+  width: 300px;
+  background: rgba(0,0,0,0.8);
+  border-right: 3px solid #334155;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-        .eyes { position: absolute; top: 35%; width: 100%; display: flex; justify-content: center; gap: 50px; pointer-events: none; }
-        .eye { width: 45px; height: 55px; background: white; border-radius: 50%; border: 5px solid #000; }
+.card {
+  background: var(--panel);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #475569;
+}
 
-        .card { background: var(--panel); padding: 15px; border-radius: 12px; border: 1px solid #475569; }
-        button {
-            width: 100%; padding: 12px; border-radius: 8px; border: none;
-            background: var(--green); color: white; font-weight: bold; cursor: pointer; margin-top: 8px;
-        }
-        button:disabled { background: #475569; opacity: 0.5; }
-        
-        .about-section { font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px; }
-        .score-area { text-align: center; margin-bottom: 30px; }
-        .popup { position: absolute; color: var(--gold); font-weight: 900; pointer-events: none; animation: popGo 0.6s forwards; font-size: 2.2rem; z-index: 500;}
-        @keyframes popGo { to { opacity: 0; transform: translateY(-150px) scale(2); } }
+button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background: var(--green);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.5; }
 
-        #owner-panel {
-            position: absolute; top: 20px; left: 340px; background: #7f1d1d; 
-            padding: 15px; border-radius: 10px; display: none; border: 2px solid white; z-index: 100;
-        }
-    </style>
+/* Main */
+.main-game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ball */
+.ball-container {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  animation: float 3s ease-in-out infinite;
+  cursor: pointer;
+}
+.ball-container:active {
+  transform: scale(0.9);
+  animation: none;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+#country-flag {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6px solid white;
+  object-fit: cover;
+  background: #222;
+}
+
+/* Eyes */
+.eyes {
+  position: absolute;
+  top: 35%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+}
+.eye {
+  width: 40px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  border: 4px solid black;
+  position: relative;
+}
+.eye::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: black;
+  border-radius: 50%;
+  position: absolute;
+  top: 18px;
+  left: 14px;
+}
+
+.mouth {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 15px;
+  border-bottom: 4px solid black;
+  border-radius: 0 0 40px 40px;
+}
+
+/* Emotions */
+.happy .mouth { border-bottom: 4px solid black; }
+.sad .mouth { border-top: 4px solid black; border-bottom: none; }
+.angry .eye { background: #ffb3b3; }
+.idle .eye::after { top: 22px; }
+
+/* Mutations */
+.mutated .eye { background: red; box-shadow: 0 0 10px red; }
+.golden { filter: drop-shadow(0 0 15px gold); }
+
+/* Modes */
+.extinct { filter: grayscale(100%); }
+.cursed {
+  animation: shake 0.15s infinite alternate;
+}
+.cursed .eye {
+  background: red;
+  box-shadow: 0 0 10px red;
+}
+
+@keyframes shake {
+  from { transform: translateX(-2px); }
+  to { transform: translateX(2px); }
+}
+
+/* Popup */
+.popup {
+  position: absolute;
+  color: var(--gold);
+  font-weight: bold;
+  animation: pop 0.6s forwards;
+  pointer-events: none;
+}
+@keyframes pop {
+  to { opacity: 0; transform: translateY(-80px) scale(1.8); }
+}
+
+/* Alt modes */
+#alt-modes {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 2000;
+}
+#alt-modes button {
+  background: black;
+  color: crimson;
+  border: 2px solid crimson;
+  font-size: 0.75rem;
+}
+
+/* Lore */
+#lore-box {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  width: 260px;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="owner-panel">
-        <strong>OWNER MODS</strong><br>
-        <button onclick="cheat(500000)">+500k Bux</button>
-        <button onclick="resetAll()" style="background: #000;">Hard Reset</button>
-        <button onclick="document.getElementById('owner-panel').style.display='none'">Close</button>
+<div id="alt-modes">
+  <button onclick="enterExtinct()">PLAY EXTINCT VERSION</button>
+  <button onclick="enterCursed()">PLAY CURSED VERSION</button>
+</div>
+
+<div class="sidebar">
+  <h2 style="color:var(--gold)">Market</h2>
+
+  <div class="card">
+    <strong>Power</strong>
+    <button id="buy-pwr">Upgrade ($<span id="pwr-cost">15</span>)</button>
+  </div>
+
+  <div class="card">
+    <strong>Auto</strong>
+    <button id="buy-auto">Hire ($<span id="auto-cost">100</span>)</button>
+  </div>
+
+  <div class="card">
+    <button onclick="resetAll()" style="background:#ef4444">Reset</button>
+  </div>
+</div>
+
+<div class="main-game">
+  <div style="text-align:center;margin-bottom:20px">
+    <div id="location-name" style="letter-spacing:4px;color:#64748b">MALAYSIA</div>
+    <div id="score-val" style="font-size:4rem;color:var(--gold)">0</div>
+    <div>Countrybux</div>
+  </div>
+
+  <div class="ball-container neutral" id="ball">
+    <img id="country-flag">
+    <div class="eyes">
+      <div class="eye"></div>
+      <div class="eye"></div>
     </div>
+    <div class="mouth"></div>
+  </div>
+</div>
 
-    <div class="sidebar">
-        <h2 style="margin:0; color:var(--gold)">Market</h2>
-        
-        <div class="card">
-            <strong>Infinite Strength</strong>
-            <button id="buy-pwr">Upgrade ($<span id="pwr-cost">15</span>)</button>
-        </div>
+<div id="lore-box" class="card">
+  <strong>LORE</strong>
+  <p id="lore-text">The Countryballs were once peaceful...</p>
+</div>
 
-        <div class="card">
-            <strong>Auto-Laborers (+10)</strong>
-            <button id="buy-auto">Hire ($<span id="auto-cost">100</span>)</button>
-        </div>
+<script>
+let data = { score:0, power:1, pwrCost:15, auto:0, autoCost:100 };
+const SAVE_KEY = "cb_zimbabwe";
+let extinctMode=false, cursedMode=false;
+let bossActive=false, bossHP=0;
 
-        <div class="about-section">
-            <strong>About</strong><br>
-            Dalton created this game hes turning 6 or 7 years old.
-        </div>
-        
-        <div style="margin-top:auto">
-            <button onclick="resetAll()" style="background: #ef4444;">Delete Progress</button>
-        </div>
-    </div>
+const countryList=["my","sg","id","th","ph","vn","cn","jp","kr","in","pk","sa","ae","tr","eg","ng","ke","za","zw"];
 
-    <div class="main-game">
-        <div class="score-area">
-            <div id="location-name" onclick="showOwner()" style="font-size: 1.2rem; letter-spacing: 2px; color: #64748b; cursor: help;">STARTING...</div>
-            <div style="font-size: 5rem; font-weight: 900; color: var(--gold);" id="score-val">0</div>
-            <div style="color: #64748b;">Countrybux</div>
-        </div>
+const emotions=["neutral","happy","sad","angry","idle"];
 
-        <div class="ball-container" id="ball">
-            <img id="country-flag" src="https://flagpedia.net/data/flags/w580/my.png">
-            <div class="eyes">
-                <div class="eye"></div>
-                <div class="eye"></div>
-            </div>
-        </div>
-    </div>
+function save(){ localStorage.setItem(SAVE_KEY,JSON.stringify(data)); }
+function load(){
+  const s=localStorage.getItem(SAVE_KEY);
+  if(s) data=JSON.parse(s);
+  refresh();
+}
 
-    <script>
-        const sfx_click = new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3');
-        
-        let data = { score: 0, power: 1, pwrCost: 15, auto: 0, autoCost: 100 };
-        const SAVE_KEY = "dalton_world_v4";
-        
-        // This list maps the Name to the real Country Code used by Flagpedia
-        const countries = [
-            {n:"Malaysia", c:"my"}, {n:"Afghanistan", c:"af"}, {n:"Albania", c:"al"}, {n:"Algeria", c:"dz"}, 
-            {n:"Andorra", c:"ad"}, {n:"Angola", c:"ao"}, {n:"Argentina", c:"ar"}, {n:"Australia", c:"au"}, 
-            {n:"Austria", c:"at"}, {n:"Azerbaijan", c:"az"}, {n:"Bahamas", c:"bs"}, {n:"Bahrain", c:"bh"}, 
-            {n:"Bangladesh", c:"bd"}, {n:"Barbados", c:"bb"}, {n:"Belarus", c:"by"}, {n:"Belgium", c:"be"}, 
-            {n:"Belize", c:"bz"}, {n:"Benin", c:"bj"}, {n:"Bolivia", c:"bo"}, {n:"Brazil", c:"br"}, 
-            {n:"Bulgaria", c:"bg"}, {n:"Cambodia", c:"kh"}, {n:"Cameroon", c:"cm"}, {n:"Canada", c:"ca"}, 
-            {n:"Chile", c:"cl"}, {n:"China", c:"cn"}, {n:"Colombia", c:"co"}, {n:"Cuba", c:"cu"}, 
-            {n:"Denmark", c:"dk"}, {n:"Egypt", c:"eg"}, {n:"Finland", c:"fi"}, {n:"France", c:"fr"}, 
-            {n:"Germany", c:"de"}, {n:"Greece", c:"gr"}, {n:"India", c:"in"}, {n:"Indonesia", c:"id"}, 
-            {n:"Italy", c:"it"}, {n:"Japan", c:"jp"}, {n:"Mexico", c:"mx"}, {n:"Norway", c:"no"}, 
-            {n:"Philippines", c:"ph"}, {n:"Poland", c:"pl"}, {n:"Russia", c:"ru"}, {n:"Spain", c:"es"}, 
-            {n:"Sweden", c:"se"}, {n:"Thailand", c:"th"}, {n:"Turkey", c:"tr"}, {n:"Ukraine", c:"ua"}, 
-            {n:"United Kingdom", c:"gb"}, {n:"USA", c:"us"}, {n:"Vietnam", c:"vn"}
-        ];
+function updateCountry(){
+  let idx=Math.floor(data.score/1500);
+  if(idx>=countryList.length) idx=countryList.length-1;
+  const code=countryList[idx];
+  const flag=document.getElementById("country-flag");
+  flag.src=`https://flagcdn.com/w320/${code}.png`;
+  flag.onerror=()=>flag.src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
+  document.getElementById("location-name").textContent=code.toUpperCase();
+}
 
-        function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
-        
-        function load() {
-            const saved = localStorage.getItem(SAVE_KEY);
-            if(saved) data = JSON.parse(saved);
-            refresh();
-        }
+function refresh(){
+  document.getElementById("score-val").textContent=Math.floor(data.score).toLocaleString();
+  document.getElementById("pwr-cost").textContent=data.pwrCost;
+  document.getElementById("auto-cost").textContent=data.autoCost;
+  updateCountry();
+  updateLore();
+  checkFinalBoss();
+}
 
-        function refresh() {
-            document.getElementById('score-val').textContent = Math.floor(data.score).toLocaleString();
-            document.getElementById('pwr-cost').textContent = data.pwrCost.toLocaleString();
-            document.getElementById('auto-cost').textContent = data.autoCost.toLocaleString();
-            document.getElementById('buy-pwr').disabled = data.score < data.pwrCost;
-            document.getElementById('buy-auto').disabled = data.score < data.autoCost;
+function spawnPopup(x,y,val){
+  const p=document.createElement("div");
+  p.className="popup";
+  p.style.left=x+"px";
+  p.style.top=y+"px";
+  p.textContent="+"+val;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),600);
+}
 
-            // Progress to next country every 500 Countrybux
-            let idx = Math.min(Math.floor(data.score / 500), countries.length - 1);
-            let current = countries[idx];
-            
-            document.getElementById('location-name').textContent = current.n.toUpperCase();
-            document.getElementById('country-flag').src = `https://flagpedia.net/data/flags/w580/${current.c}.png`;
-        }
+function randomEmotion(){
+  const ball=document.getElementById("ball");
+  ball.classList.remove(...emotions);
+  ball.classList.add(emotions[Math.floor(Math.random()*emotions.length)]);
+}
 
-        document.getElementById('ball').addEventListener('click', (e) => {
-            data.score += data.power;
-            try { sfx_click.currentTime = 0; sfx_click.play(); } catch(err){}
-            spawnPopup(e.clientX, e.clientY, data.power);
-            refresh(); save();
-        });
+function tryMutation(){
+  const ball=document.getElementById("ball");
+  ball.classList.remove("mutated","golden");
+  if(cursedMode && Math.random()<0.08) ball.classList.add("mutated");
+  else if(Math.random()<0.01) ball.classList.add("golden");
+}
 
-        document.getElementById('buy-pwr').addEventListener('click', () => {
-            if(data.score >= data.pwrCost) {
-                data.score -= data.pwrCost;
-                data.power++;
-                data.pwrCost = Math.round(data.pwrCost * 1.5);
-                refresh(); save();
-            }
-        });
+document.getElementById("ball").onclick=(e)=>{
+  data.score+=data.power;
+  spawnPopup(e.clientX,e.clientY,data.power);
+  randomEmotion();
+  tryMutation();
+  if(data.score%10000<data.power) spawnBoss();
+  hitBoss();
+  refresh(); save();
+};
 
-        document.getElementById('buy-auto').addEventListener('click', () => {
-            if(data.score >= data.autoCost) {
-                data.score -= data.autoCost;
-                data.auto += 10;
-                data.autoCost = Math.round(data.autoCost * 1.7);
-                refresh(); save();
-            }
-        });
+document.getElementById("buy-pwr").onclick=()=>{
+  if(data.score>=data.pwrCost){
+    data.score-=data.pwrCost;
+    data.power++;
+    data.pwrCost=Math.round(data.pwrCost*1.4);
+    refresh(); save();
+  }
+};
 
-        function spawnPopup(x, y, val) {
-            const p = document.createElement('div');
-            p.className = 'popup';
-            p.style.left = x + 'px'; p.style.top = y + 'px';
-            p.innerText = `+$${val}`;
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 600);
-        }
+document.getElementById("buy-auto").onclick=()=>{
+  if(data.score>=data.autoCost){
+    data.score-=data.autoCost;
+    data.auto++;
+    data.autoCost=Math.round(data.autoCost*1.6);
+    refresh(); save();
+  }
+};
 
-        setInterval(() => {
-            if(data.auto > 0) {
-                data.score += (data.auto * data.power) / 5;
-                refresh();
-            }
-        }, 200);
+setInterval(()=>{
+  if(data.auto>0){
+    if(extinctMode) data.score+=Math.floor(data.auto*0.3);
+    else if(cursedMode) data.score+=data.auto*(Math.random()<0.3?5:1);
+    else data.score+=data.auto;
+    refresh();
+  }
+},1000);
 
-        function showOwner() { document.getElementById('owner-panel').style.display = 'block'; }
-        function cheat(n) { data.score += n; refresh(); save(); }
-        function resetAll() { if(confirm("Erase all progress?")) { localStorage.clear(); location.reload(); } }
+function enterExtinct(){
+  extinctMode=true; cursedMode=false;
+  document.getElementById("ball").className="ball-container extinct";
+}
+function enterCursed(){
+  cursedMode=true; extinctMode=false;
+  document.getElementById("ball").className="ball-container cursed";
+}
 
-        load();
-    </script>
+function spawnBoss(){
+  if(bossActive) return;
+  bossActive=true;
+  bossHP=cursedMode?500:extinctMode?300:200;
+  alert("⚠️ BOSS APPEARS!");
+}
+function hitBoss(){
+  if(!bossActive) return;
+  bossHP-=data.power;
+  if(bossHP<=0){
+    bossActive=false;
+    data.score+=5000;
+    alert("💀 Boss Defeated!");
+  }
+}
+
+function checkFinalBoss(){
+  if(data.score>=25000 && !bossActive){
+    bossActive=true;
+    bossHP=1000;
+    alert("👑 FINAL BOSS: ZIMBABWE TITAN!");
+  }
+}
+
+function updateLore(){
+  const lore=document.getElementById("lore-text");
+  if(cursedMode) lore.textContent="The world is corrupted by forbidden flags...";
+  else if(extinctMode) lore.textContent="Only shadows remain of fallen nations...";
+  else if(data.score>20000) lore.textContent="Zimbabwe rises as the final empire...";
+  else lore.textContent="The Countryballs grow stronger...";
+}
+
+function resetAll(){
+  if(confirm("Reset all progress?")){
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
+  }
+}
+
+load();
+</script>
+
 </body>
 </html>
